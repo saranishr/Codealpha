@@ -1,123 +1,121 @@
 #include <iostream>
-#include <filesystem>
 #include <fstream>
 #include <string>
 
 using namespace std;
-namespace fs = std::filesystem;
 
-// Function prototypes
-void showMenu();
-void changeDirectory();
-void viewFiles();
-void createDirectory();
-void copyFile();
-void moveFile();
-string getCurrentPath();
+class FileManager {
+public:
+    void createFile(const string& fileName) {
+        ofstream file(fileName);
+        if (file.is_open()) {
+            cout << "File " << fileName << " created successfully!" << endl;
+            file.close();
+        } else {
+            cerr << "Error creating file!" << endl;
+        }
+    }
+
+    void writeFile(const string& fileName, const string& content) {
+        ofstream file(fileName);
+        if (file.is_open()) {
+            file << content;
+            cout << "Content written to " << fileName << endl;
+            file.close();
+        } else {
+            cerr << "Error opening file!" << endl;
+        }
+    }
+
+    void appendToFile(const string& fileName, const string& content) {
+        ofstream file(fileName, ios::app);
+        if (file.is_open()) {
+            file << content;
+            cout << "Content appended to " << fileName << endl;
+            file.close();
+        } else {
+            cerr << "Error opening file for appending!" << endl;
+        }
+    }
+
+    void readFile(const string& fileName) {
+        ifstream file(fileName);
+        if (file.is_open()) {
+            string line;
+            cout << "Reading file " << fileName << ":\n";
+            while (getline(file, line)) {
+                cout << line << endl;
+            }
+            file.close();
+        } else {
+            cerr << "Error opening file!" << endl;
+        }
+    }
+
+    void deleteFile(const string& fileName) {
+        if (remove(fileName.c_str()) == 0) {
+            cout << "File " << fileName << " deleted successfully!" << endl;
+        } else {
+            cerr << "Error deleting file!" << endl;
+        }
+    }
+};
 
 int main() {
-    int choice;
+    FileManager fileManager;
+    string fileName, content;
 
-    while (true) {
-        showMenu();
+    int choice;
+    do {
+        cout << "\nFile Manager Menu:\n";
+        cout << "1. Create a File\n";
+        cout << "2. Write to a File\n";
+        cout << "3. Append to a File\n";
+        cout << "4. Read a File\n";
+        cout << "5. Delete a File\n";
+        cout << "6. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
 
         switch (choice) {
-            case 1: changeDirectory(); break;
-            case 2: viewFiles(); break;
-            case 3: createDirectory(); break;
-            case 4: copyFile(); break;
-            case 5: moveFile(); break;
-            case 0: return 0; // Exit the program
-            default: cout << "Invalid choice. Please try again.\n";
+        case 1:
+            cout << "Enter file name: ";
+            cin >> fileName;
+            fileManager.createFile(fileName);
+            break;
+        case 2:
+            cout << "Enter file name: ";
+            cin >> fileName;
+            cin.ignore();
+            cout << "Enter content to write: ";
+            getline(cin, content);
+            fileManager.writeFile(fileName, content);
+            break;
+        case 3:
+            cout << "Enter file name: ";
+            cin >> fileName;
+            cin.ignore();
+            cout << "Enter content to append: ";
+            getline(cin, content);
+            fileManager.appendToFile(fileName, content);
+            break;
+        case 4:
+            cout << "Enter file name: ";
+            cin >> fileName;
+            fileManager.readFile(fileName);
+            break;
+        case 5:
+            cout << "Enter file name: ";
+            cin >> fileName;
+            fileManager.deleteFile(fileName);
+            break;
+        case 6:
+            cout << "Exiting file manager..." << endl;
+            break;
+        default:
+            cout << "Invalid choice! Please try again." << endl;
         }
-    }
+    } while (choice != 6);
 
     return 0;
 }
-
-void showMenu() {
-    cout << "\nFile Manager Menu:\n";
-    cout << "1. Change Directory\n";
-    cout << "2. View Files\n";
-    cout << "3. Create Directory\n";
-    cout << "4. Copy File\n";
-    cout << "5. Move File\n";
-    cout << "0. Exit\n";
-}
-
-void changeDirectory() {
-    string path;
-    cout << "Enter the directory path: ";
-    cin.ignore(); // To ignore leftover newline character
-    getline(cin, path);
-
-    try {
-        fs::current_path(path);
-        cout << "Directory changed to: " << fs::current_path() << "\n";
-    } catch (const exception& e) {
-        cout << "Error: " << e.what() << "\n";
-    }
-}
-
-void viewFiles() {
-    cout << "Files in directory: " << fs::current_path() << "\n";
-    for (const auto& entry : fs::directory_iterator(fs::current_path())) {
-        cout << (entry.is_directory() ? "[DIR] " : "[FILE] ") << entry.path().filename().string() << "\n";
-    }
-}
-
-void createDirectory() {
-    string dirName;
-    cout << "Enter the new directory name: ";
-    cin.ignore(); // To ignore leftover newline character
-    getline(cin, dirName);
-
-    try {
-        if (fs::create_directory(dirName)) {
-            cout << "Directory created successfully.\n";
-        } else {
-            cout << "Directory already exists.\n";
-        }
-    } catch (const exception& e) {
-        cout << "Error: " << e.what() << "\n";
-    }
-}
-
-void copyFile() {
-    string sourceFile, destFile;
-    cout << "Enter the source file path: ";
-    cin.ignore(); // To ignore leftover newline character
-    getline(cin, sourceFile);
-    cout << "Enter the destination file path: ";
-    getline(cin, destFile);
-
-    try {
-        fs::copy(sourceFile, destFile);
-        cout << "File copied successfully.\n";
-    } catch (const exception& e) {
-        cout << "Error: " << e.what() << "\n";
-    }
-}
-
-void moveFile() {
-    string sourceFile, destFile;
-    cout << "Enter the source file path: ";
-    cin.ignore(); // To ignore leftover newline character
-    getline(cin, sourceFile);
-    cout << "Enter the destination file path: ";
-    getline(cin, destFile);
-
-    try {
-        fs::rename(sourceFile, destFile);
-        cout << "File moved successfully.\n";
-    } catch (const exception& e) {
-        cout << "Error: " << e.what() << "\n";
-    }
-}
-
-string getCurrentPath() {
-    return fs::current_path().string();
-}
-
